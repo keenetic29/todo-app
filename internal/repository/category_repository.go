@@ -37,5 +37,13 @@ func (r *categoryRepository) GetByID(id uint) (*domain.Category, error) {
 }
 
 func (r *categoryRepository) Delete(id uint) error {
+	// Обнуляем category_id у всех связанных задач
+    if err := r.db.Model(&domain.Task{}).
+        Where("category_id = ?", id).
+        Update("category_id", nil).Error; err != nil {
+        return err
+    }
+
+
     return r.db.Delete(&domain.Category{}, id).Error
 }
