@@ -13,7 +13,7 @@ func InitDB(dsn string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	err = db.AutoMigrate(&domain.User{}, &domain.Task{})
+	err = db.AutoMigrate(&domain.User{}, &domain.Category{}, &domain.Task{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate models: %w", err)
 	}

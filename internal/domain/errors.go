@@ -7,4 +7,5 @@ var (
 	ErrTaskNotFound  = errors.New("task not found")
 	ErrInvalidInput  = errors.New("invalid input")
 	ErrUnauthorized = errors.New("unauthorized")
+	ErrCategoryNotFound = errors.New("category not found")
 )

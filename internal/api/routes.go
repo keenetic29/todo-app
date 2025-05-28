@@ -16,14 +16,18 @@ func SetupRouter(db *gorm.DB, cfg *config.Config) *gin.Engine {
 
 	userRepo := repository.NewUserRepository(db)
 	taskRepo := repository.NewTaskRepository(db)
+	categoryRepo := repository.NewCategoryRepository(db) 
 
 	jwtUtil := jwt.NewJWTUtil(cfg.JWTSecret)
 
 	authService := services.NewAuthService(userRepo, jwtUtil)
-	taskService := services.NewTaskService(taskRepo)
+	taskService := services.NewTaskService(taskRepo, categoryRepo)
+	categoryService := services.NewCategoryService(categoryRepo) 
+	
 
 	authHandler := handlers.NewAuthHandler(authService)
 	taskHandler := handlers.NewTaskHandler(taskService)
+	categoryHandler := handlers.NewCategoryHandler(categoryService) // Добавляем это
 
 	router.POST("/register", authHandler.Register)
 	router.POST("/login", authHandler.Login)
@@ -31,9 +35,16 @@ func SetupRouter(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	authGroup := router.Group("/").Use(handlers.AuthMiddleware(jwtUtil))
 	{
 		authGroup.GET("/tasks", taskHandler.GetTasks)
+		authGroup.GET("/tasks/:id", taskHandler.GetTaskByID)
 		authGroup.POST("/tasks", taskHandler.CreateTask)
 		authGroup.PUT("/tasks/:id", taskHandler.UpdateTask)
 		authGroup.DELETE("/tasks/:id", taskHandler.DeleteTask)
+
+		authGroup.POST("/categories", categoryHandler.CreateCategory)
+        authGroup.GET("/categories", categoryHandler.GetCategories)
+        authGroup.DELETE("/categories/:id", categoryHandler.DeleteCategory)
+
+		authGroup.PATCH("/tasks/:id/category", taskHandler.UpdateTaskCategory)
 	}
 
 	return router

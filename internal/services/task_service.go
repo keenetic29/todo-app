@@ -12,14 +12,19 @@ type TaskService interface {
 	GetTaskByID(userID, taskID uint) (*domain.Task, error)
 	UpdateTask(userID uint, task *domain.Task) error
 	DeleteTask(userID, taskID uint) error
+	UpdateTaskCategory(userID, taskID uint, categoryID *uint) error
 }
 
 type taskService struct {
 	taskRepo repository.TaskRepository
+	categoryRepo repository.CategoryRepository
 }
 
-func NewTaskService(taskRepo repository.TaskRepository) TaskService {
-	return &taskService{taskRepo: taskRepo}
+func NewTaskService(taskRepo repository.TaskRepository, categoryRepo repository.CategoryRepository) TaskService {
+	return &taskService{
+		taskRepo:     taskRepo,
+		categoryRepo: categoryRepo,
+	}
 }
 
 func (s *taskService) CreateTask(task *domain.Task) error {
@@ -63,4 +68,30 @@ func (s *taskService) DeleteTask(userID, taskID uint) error {
 	}
 
 	return s.taskRepo.Delete(taskID)
+}
+
+func (s *taskService) UpdateTaskCategory(userID, taskID uint, categoryID *uint) error {
+	// Проверяем что задача принадлежит пользователю
+	task, err := s.taskRepo.GetByID(taskID)
+	if err != nil {
+		return domain.ErrTaskNotFound
+	}
+	
+	if task.UserID != userID {
+		return domain.ErrUnauthorized
+	}
+
+	// Если передана категория, проверяем что она существует и принадлежит пользователю
+	if categoryID != nil {
+		category, err := s.categoryRepo.GetByID(*categoryID)
+		if err != nil {
+			return domain.ErrCategoryNotFound
+		}
+		if category.UserID != userID {
+			return domain.ErrUnauthorized
+		}
+	}
+
+	// Обновляем категорию задачи
+	return s.taskRepo.UpdateCategory(taskID, categoryID)
 }

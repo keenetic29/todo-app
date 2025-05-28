@@ -12,6 +12,7 @@ type TaskRepository interface {
 	GetByID(id uint) (*domain.Task, error)
 	Update(task *domain.Task) error
 	Delete(id uint) error
+	UpdateCategory(taskID uint, categoryID *uint) error
 }
 
 type taskRepository struct {
@@ -44,4 +45,8 @@ func (r *taskRepository) Update(task *domain.Task) error {
 
 func (r *taskRepository) Delete(id uint) error {
 	return r.db.Delete(&domain.Task{}, id).Error
+}
+
+func (r *taskRepository) UpdateCategory(taskID uint, categoryID *uint) error {
+    return r.db.Model(&domain.Task{}).Where("id = ?", taskID).Update("category_id", categoryID).Error
 }
