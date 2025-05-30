@@ -1,7 +1,7 @@
 package api
 
 import (
-	_ "todo-app/docs" 
+	_ "todo-app/docs"
 	"todo-app/internal/api/handlers"
 	"todo-app/internal/config"
 	"todo-app/internal/repository"
