@@ -1,0 +1,525 @@
+basePath: /
+definitions:
+  domain.Category:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      tasks:
+        items:
+          $ref: '#/definitions/domain.Task'
+        type: array
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  domain.CategoryRequest:
+    properties:
+      category_id:
+        type: integer
+    type: object
+  domain.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  domain.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  domain.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  domain.SwaggerCategory:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  domain.SwaggerTask:
+    properties:
+      category:
+        $ref: '#/definitions/domain.SwaggerCategory'
+      category_id:
+        type: integer
+      completed:
+        type: boolean
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  domain.Task:
+    properties:
+      category:
+        $ref: '#/definitions/domain.Category'
+      category_id:
+        type: integer
+      completed:
+        type: boolean
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  domain.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      password:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@todoapp.com
+    name: API Support
+  description: This is a Todo application with user authentication, task and category
+    management.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Todo App API
+  version: "1.0"
+paths:
+  /categories:
+    get:
+      description: Возвращает все категории для авторизованного пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.SwaggerCategory'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получить категории пользователя
+      tags:
+      - Категории
+    post:
+      consumes:
+      - application/json
+      description: Создает новую категорию для авторизованного пользователя
+      parameters:
+      - description: Данные категории
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Category'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.SwaggerCategory'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Создать новую категорию
+      tags:
+      - Категории
+  /categories/{id}:
+    delete:
+      description: Удаляет категорию по ID (должна принадлежать пользователю)
+      parameters:
+      - description: ID категории
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удалить категорию
+      tags:
+      - Категории
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login with email and password
+      parameters:
+      - description: User credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/domain.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login a user
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with username, email and password
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/domain.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - auth
+  /tasks:
+    get:
+      description: Возвращает список всех задач для авторизованного пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.SwaggerTask'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получить все задачи пользователя
+      tags:
+      - Задачи
+    post:
+      consumes:
+      - application/json
+      description: Создает новую задачу для авторизованного пользователя
+      parameters:
+      - description: Данные задачи
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Task'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.SwaggerTask'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Создать новую задачу
+      tags:
+      - Задачи
+  /tasks/{id}:
+    delete:
+      description: Удаляет задачу по указанному ID
+      parameters:
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удалить задачу
+      tags:
+      - Задачи
+    get:
+      description: Возвращает задачу по указанному ID для авторизованного пользователя
+      parameters:
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SwaggerTask'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получить задачу по ID
+      tags:
+      - Задачи
+    put:
+      consumes:
+      - application/json
+      description: Обновляет существующую задачу
+      parameters:
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Обновленные данные задачи
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Task'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SwaggerTask'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновить задачу
+      tags:
+      - Задачи
+  /tasks/{id}/category:
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет или удаляет категорию для задачи
+      parameters:
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные категории
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновить категорию задачи
+      tags:
+      - Задачи
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

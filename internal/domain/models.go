@@ -31,3 +31,13 @@ type Task struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
+
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type CategoryRequest struct {
+	CategoryID *uint `json:"category_id"`
+}
+
