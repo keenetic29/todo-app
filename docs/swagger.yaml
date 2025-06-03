@@ -34,6 +34,18 @@ definitions:
       password:
         type: string
     type: object
+  domain.PaginatedResponse:
+    properties:
+      data: {}
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
   domain.SuccessResponse:
     properties:
       message:
@@ -293,16 +305,37 @@ paths:
       - auth
   /tasks:
     get:
-      description: Возвращает список всех задач для авторизованного пользователя
+      description: |-
+        Возвращает список всех задач для авторизованного пользователя
+        Возвращает список задач с возможностью пагинации, сортировки и фильтрации
+      parameters:
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Количество элементов на странице
+        in: query
+        name: limit
+        type: integer
+      - description: Поле для сортировки (с префиксом - для DESC)
+        example: -created_at
+        in: query
+        name: sort
+        type: string
+      - description: Фильтр по статусу выполнения
+        in: query
+        name: completed
+        type: boolean
       produces:
+      - application/json
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.SwaggerTask'
-            type: array
+            $ref: '#/definitions/domain.PaginatedResponse'
         "401":
           description: Unauthorized
           schema:
@@ -313,8 +346,10 @@ paths:
             $ref: '#/definitions/domain.ErrorResponse'
       security:
       - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Получить все задачи пользователя
       tags:
+      - Задачи
       - Задачи
     post:
       consumes:

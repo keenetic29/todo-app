@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+	"strings"
 	"todo-app/internal/domain"
 
 	"gorm.io/gorm"
@@ -8,7 +10,7 @@ import (
 
 type TaskRepository interface {
 	Create(task *domain.Task) error
-	GetByUserID(userID uint) ([]domain.Task, error)
+	GetByUserID(userID uint, query domain.TaskQuery) ([]domain.Task, int64, error)
 	GetByID(id uint) (*domain.Task, error)
 	Update(task *domain.Task) error
 	Delete(id uint) error
@@ -27,10 +29,58 @@ func (r *taskRepository) Create(task *domain.Task) error {
 	return r.db.Create(task).Error
 }
 
-func (r *taskRepository) GetByUserID(userID uint) ([]domain.Task, error) {
-	var tasks []domain.Task
-	err := r.db.Where("user_id = ?", userID).Find(&tasks).Error
-	return tasks, err
+func (r *taskRepository) GetByUserID(userID uint, query domain.TaskQuery) ([]domain.Task, int64, error) {
+    var tasks []domain.Task
+    var total int64
+
+    db := r.db.Model(&domain.Task{}).Where("user_id = ?", userID)
+
+    // Фильтрация по статусу
+    if query.Completed != nil {
+        db = db.Where("completed = ?", *query.Completed)
+    }
+
+    // Сортировка
+    if query.SortBy != "" {
+        order := "ASC"
+        sortField := query.SortBy
+
+        if strings.HasPrefix(query.SortBy, "-") {
+            order = "DESC"
+            sortField = strings.TrimPrefix(query.SortBy, "-")
+        }
+
+        // Проверяем допустимые поля для сортировки
+        validSortFields := map[string]bool{
+            "created_at":  true,
+            "updated_at":  true,
+            "title":       true,
+            "completed":  true,
+        }
+
+        if validSortFields[sortField] {
+            db = db.Order(fmt.Sprintf("%s %s", sortField, order))
+        }
+    }
+
+    // Получаем общее количество
+    err := db.Count(&total).Error
+    if err != nil {
+        return nil, 0, err
+    }
+
+    // Применяем пагинацию
+    if query.Page < 1 {
+        query.Page = 1
+    }
+    if query.Limit < 1 || query.Limit > 100 {
+        query.Limit = 10
+    }
+
+    offset := (query.Page - 1) * query.Limit
+    err = db.Offset(offset).Limit(query.Limit).Find(&tasks).Error
+
+    return tasks, total, err
 }
 
 func (r *taskRepository) GetByID(id uint) (*domain.Task, error) {

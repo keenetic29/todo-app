@@ -29,23 +29,53 @@ func NewTaskHandler(taskService services.TaskService) *TaskHandler {
 // @Failure 401 {object} domain.ErrorResponse
 // @Failure 500 {object} domain.ErrorResponse
 // @Router /tasks [get]
+// GetTasks godoc
+// @Summary Получить все задачи пользователя
+// @Description Возвращает список задач с возможностью пагинации, сортировки и фильтрации
+// @Tags Задачи
+// @Security ApiKeyAuth
+// @Produce json
+// @Param page query int false "Номер страницы" default(1)
+// @Param limit query int false "Количество элементов на странице" default(10)
+// @Param sort query string false "Поле для сортировки (с префиксом - для DESC)" example(-created_at)
+// @Param completed query boolean false "Фильтр по статусу выполнения"
+// @Success 200 {object} domain.PaginatedResponse
+// @Failure 401 {object} domain.ErrorResponse
+// @Failure 500 {object} domain.ErrorResponse
+// @Router /tasks [get]
 func (h *TaskHandler) GetTasks(c *gin.Context) {
-	userID := c.MustGet("userID").(uint)
+    userID := c.MustGet("userID").(uint)
+    
+    var query domain.TaskQuery
+    if err := c.ShouldBindQuery(&query); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
-	tasks, err := h.taskService.GetUserTasks(userID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+    tasks, total, err := h.taskService.GetUserTasks(userID, query)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
 
-	// для свагера
-	var result []domain.SwaggerTask
-	for _, task := range tasks {
-		result = append(result, task.ToSwagger())
-	}
+    // Преобразуем для свагера
+    var result []domain.SwaggerTask
+    for _, task := range tasks {
+        result = append(result, task.ToSwagger())
+    }
 
-	//возвращаем не tasks, а result
-	c.JSON(http.StatusOK, result)
+    totalPages := total / int64(query.Limit)
+    if total%int64(query.Limit) != 0 {
+        totalPages++
+    }
+
+    c.JSON(http.StatusOK, domain.PaginatedResponse{
+        Data:       result,
+        Total:      total,
+        Page:       query.Page,
+        Limit:      query.Limit,
+        TotalPages: int(totalPages),
+    })
 }
 
 // GetTaskByID godoc

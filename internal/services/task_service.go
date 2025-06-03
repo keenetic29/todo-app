@@ -8,7 +8,7 @@ import (
 
 type TaskService interface {
 	CreateTask(task *domain.Task) error
-	GetUserTasks(userID uint) ([]domain.Task, error)
+	GetUserTasks(userID uint, query domain.TaskQuery) ([]domain.Task, int64, error)
 	GetTaskByID(userID, taskID uint) (*domain.Task, error)
 	UpdateTask(userID uint, task *domain.Task) error
 	DeleteTask(userID, taskID uint) error
@@ -31,8 +31,8 @@ func (s *taskService) CreateTask(task *domain.Task) error {
 	return s.taskRepo.Create(task)
 }
 
-func (s *taskService) GetUserTasks(userID uint) ([]domain.Task, error) {
-	return s.taskRepo.GetByUserID(userID)
+func (s *taskService) GetUserTasks(userID uint, query domain.TaskQuery) ([]domain.Task, int64, error) {
+    return s.taskRepo.GetByUserID(userID, query)
 }
 
 func (s *taskService) GetTaskByID(userID, taskID uint) (*domain.Task, error) {

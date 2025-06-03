@@ -41,3 +41,26 @@ type CategoryRequest struct {
 	CategoryID *uint `json:"category_id"`
 }
 
+type Pagination struct {
+    Page  int `form:"page" json:"page"`
+    Limit int `form:"limit" json:"limit"`
+}
+
+type SortOptions struct {
+    SortBy string `form:"sort" json:"sort"`
+}
+
+type TaskQuery struct {
+    Pagination
+    SortOptions
+    Completed *bool `form:"completed" json:"completed,omitempty"`
+}
+
+type PaginatedResponse struct {
+    Data       interface{} `json:"data"`
+    Total      int64       `json:"total"`
+    Page       int         `json:"page"`
+    Limit      int         `json:"limit"`
+    TotalPages int         `json:"total_pages"`
+}
+
