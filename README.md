@@ -98,7 +98,7 @@ Authorization: <ваш_токен>
 {
   "title": "string",
   "description": "string",
-  "category_id": number|null
+  "category_id": number | null
 }
 ```
 
@@ -109,6 +109,6 @@ Authorization: <ваш_токен>
 Параметры:
 ```json
 {
-  "category_id": number|null
+  "category_id": number | null
 }
 ```
