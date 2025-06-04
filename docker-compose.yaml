@@ -9,6 +9,10 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - logs:/app/logs  # Монтируем volume для логов
+    environment:
+      - LOG_FILE=/app/logs/todo-app.log  # Указываем путь к лог-файлу внутри контейнера
 
   db:
     image: postgres:16-alpine
@@ -26,3 +30,4 @@ services:
 
 volumes:
   postgres_data:
+  logs:  # Добавляем volume для логов

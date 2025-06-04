@@ -12,7 +12,10 @@ WORKDIR /app
 
 # Копируем бинарник и конфиги
 COPY --from=builder /app/todo-app .
-COPY --from=builder /app/conf.example.env ./conf.env  
+COPY --from=builder /app/conf.example.env ./conf.env
+
+# Создаем директорию для логов и устанавливаем права
+RUN mkdir /logs && chmod 777 /logs
 
 EXPOSE 8080
 CMD ["./todo-app"]
