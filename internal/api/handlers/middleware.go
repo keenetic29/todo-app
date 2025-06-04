@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strings"
+	//"strings"
 	"todo-app/pkg/jwt"
 	"todo-app/pkg/logger"
 )
@@ -18,13 +18,13 @@ func AuthMiddleware(jwtUtil jwt.JWTUtil) gin.HandlerFunc {
 			return
 		}
 
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		if tokenString == authHeader {
-			logger.Error.Println("Bearer token not found")
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Bearer token not found"})
-			c.Abort()
-			return
-		}
+		tokenString := authHeader
+		// if tokenString == authHeader {
+		// 	logger.Error.Println("Bearer token not found")
+		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Bearer token not found"})
+		// 	c.Abort()
+		// 	return
+		// }
 
 		userID, err := jwtUtil.ValidateToken(tokenString)
 		if err != nil {

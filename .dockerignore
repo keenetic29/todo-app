@@ -6,3 +6,4 @@ bin
 *.md
 *.sqlite
 *.db
+*.log
