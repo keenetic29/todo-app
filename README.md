@@ -87,7 +87,7 @@ Authorization: <ваш_токен>
 {
   "title": "string",
   "description": "string",
-  "category_id": number|null
+  "category_id": int | null
 }
 ```
 
