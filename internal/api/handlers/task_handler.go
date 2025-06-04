@@ -7,6 +7,7 @@ import (
 
 	"todo-app/internal/domain"
 	"todo-app/internal/services"
+	"todo-app/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,6 +55,7 @@ func (h *TaskHandler) GetTasks(c *gin.Context) {
 
     tasks, total, err := h.taskService.GetUserTasks(userID, query)
     if err != nil {
+		logger.Info.Printf("[USER: %d] error getting all tasks", userID)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
@@ -69,6 +71,7 @@ func (h *TaskHandler) GetTasks(c *gin.Context) {
         totalPages++
     }
 
+	logger.Info.Printf("[USER: %d] successful receipt of all tasks", userID)
     c.JSON(http.StatusOK, domain.PaginatedResponse{
         Data:       result,
         Total:      total,
@@ -105,10 +108,12 @@ func (h *TaskHandler) GetTaskByID(c *gin.Context) {
             c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
             return
         }
+		logger.Info.Printf("[USER: %d] error getting task by id", userID)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
+	logger.Info.Printf("[USER: %d] successful receipt of  task by id", userID)
 	// преобразуем для свагера
     c.JSON(http.StatusOK, task.ToSwagger())
 }
@@ -137,10 +142,12 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 
 	task.UserID = userID
 	if err := h.taskService.CreateTask(&task); err != nil {
+		logger.Info.Printf("[USER: %d] error task creation", userID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	logger.Info.Printf("[USER: %d] successful task creation", userID)
 	// преобразуем для свагера
 	c.JSON(http.StatusCreated, task.ToSwagger())
 }
@@ -176,10 +183,12 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 
 	task.ID = uint(taskID)
 	if err := h.taskService.UpdateTask(userID, &task); err != nil {
+		logger.Info.Printf("[USER: %d] task update error", userID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	logger.Info.Printf("[USER: %d] task update successful", userID)
 	// преобразуем для свагера
 	c.JSON(http.StatusCreated, task.ToSwagger())
 }
@@ -206,10 +215,12 @@ func (h *TaskHandler) DeleteTask(c *gin.Context) {
 	}
 
 	if err := h.taskService.DeleteTask(userID, uint(taskID)); err != nil {
+		logger.Info.Printf("[USER: %d] task delete error", userID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	logger.Info.Printf("[USER: %d] task deleted successfully", userID)
 	c.JSON(http.StatusOK, domain.SuccessResponse{Message: "Task deleted successfully"})
 }
 
@@ -244,6 +255,7 @@ func (h *TaskHandler) UpdateTaskCategory(c *gin.Context) {
 	}
 
 	if err := h.taskService.UpdateTaskCategory(userID, uint(taskID), request.CategoryID); err != nil {
+		logger.Info.Printf("[USER: %d] task category update error", userID)
 		switch err {
 		case domain.ErrTaskNotFound, domain.ErrCategoryNotFound:
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -255,5 +267,6 @@ func (h *TaskHandler) UpdateTaskCategory(c *gin.Context) {
 		return
 	}
 
+	logger.Info.Printf("[USER: %d] task category update successful", userID)
 	c.JSON(http.StatusOK, domain.SuccessResponse{Message: "Task category updated successfully"})
 }

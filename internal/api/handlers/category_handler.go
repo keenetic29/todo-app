@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"todo-app/internal/domain"
 	"todo-app/internal/services"
+	"todo-app/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,6 +42,7 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 
     category.UserID = userID
     if err := h.categoryService.CreateCategory(&category); err != nil {
+        logger.Info.Printf("[USER: %d] category creation error", userID)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
@@ -53,7 +55,8 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
         CreatedAt: category.CreatedAt,
         UpdatedAt: category.UpdatedAt,
     }
-    
+
+    logger.Info.Printf("[USER: %d] successful category creation", userID)
     c.JSON(http.StatusCreated, swaggerCategory)
 }
 
@@ -72,6 +75,7 @@ func (h *CategoryHandler) GetCategories(c *gin.Context) {
 
     categories, err := h.categoryService.GetUserCategories(userID)
     if err != nil {
+        logger.Info.Printf("[USER: %d] error getting categories", userID)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
@@ -88,6 +92,7 @@ func (h *CategoryHandler) GetCategories(c *gin.Context) {
         })
     }
 
+    logger.Info.Printf("[USER: %d] successful receipt of categories", userID)
     c.JSON(http.StatusOK, result)
 }
 
@@ -113,9 +118,11 @@ func (h *CategoryHandler) DeleteCategory(c *gin.Context) {
     }
 
     if err := h.categoryService.DeleteCategory(userID, uint(categoryID)); err != nil {
+        logger.Info.Printf("[USER: %d] category deletion error", userID)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
+    logger.Info.Printf("[USER: %d] successful category delition", userID)
     c.JSON(http.StatusOK, domain.SuccessResponse{Message: "Category deleted successfully"})
 }

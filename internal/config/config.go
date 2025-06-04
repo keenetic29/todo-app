@@ -11,6 +11,7 @@ type Config struct {
 	DBURL         string
 	ServerAddress string
 	JWTSecret     string
+	LogFile       string
 }
 
 func LoadConfig(filename string) (*Config, error) {
@@ -22,6 +23,7 @@ func LoadConfig(filename string) (*Config, error) {
 		DBURL:         getEnv("DB_URL", ""),
 		ServerAddress: getEnv("SERVER_ADDRESS", ":8080"), 
 		JWTSecret:     getEnv("JWT_SECRET", ""),
+		LogFile:       getEnv("LOG_FILE", "app.log"),
 	}
 
 	if cfg.DBURL == "" {
