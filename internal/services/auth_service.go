@@ -22,7 +22,19 @@ func NewAuthService(userRepo repository.UserRepository, jwtUtil jwt.JWTUtil) Aut
 }
 
 func (s *authService) Register(user *domain.User) error {
-	return s.userRepo.Create(user)
+    // Проверяем существует ли пользователь с таким email
+    existingUser, err := s.userRepo.FindByEmail(user.Email)
+    if err == nil && existingUser != nil {
+        return domain.ErrUserAlreadyExists
+    }
+
+    // Проверяем существует ли пользователь с таким username
+    existingUser, err = s.userRepo.FindByUsername(user.Username)
+    if err == nil && existingUser != nil {
+        return domain.ErrUsernameAlreadyTaken
+    }
+
+    return s.userRepo.Create(user)
 }
 
 func (s *authService) Login(email, password string) (string, error) {

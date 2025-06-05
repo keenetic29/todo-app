@@ -27,24 +27,37 @@ func NewAuthHandler(authService services.AuthService) *AuthHandler {
 // @Param user body domain.User true "User registration data"
 // @Success 201 {object} map[string]string
 // @Failure 400 {object} map[string]string
+// @Failure 409 {object} map[string]string 
 // @Failure 500 {object} map[string]string
 // @Router /register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
-	var user domain.User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		logger.Error.Printf("Register bind error: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+    var user domain.User
+    if err := c.ShouldBindJSON(&user); err != nil {
+        logger.Error.Printf("Register bind error: %v", err)
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
-	if err := h.authService.Register(&user); err != nil {
-		logger.Error.Printf("Registration failed: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+    if err := h.authService.Register(&user); err != nil {
+        logger.Error.Printf("Registration failed: %v", err)
+        
+        status := http.StatusConflict
+        if err == domain.ErrUserAlreadyExists {
+            c.JSON(status, domain.ErrorResponse{Error: "User already exists with such email"})
+        	return
+        }
 
-	logger.Info.Printf("User registered: %s", user.Email)
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
+		if err == domain.ErrUsernameAlreadyTaken {
+            c.JSON(status, domain.ErrorResponse{Error: "Username already taken"})
+        	return
+        }
+        
+        c.JSON(status, gin.H{"error": err.Error()})
+        return
+    }
+
+    logger.Info.Printf("User registered: %s", user.Email)
+    c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
 // Login godoc

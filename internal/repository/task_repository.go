@@ -69,6 +69,11 @@ func (r *taskRepository) GetByUserID(userID uint, query domain.TaskQuery) ([]dom
         return nil, 0, err
     }
 
+    // Если нет задач, возвращаем пустой список
+    if total == 0 {
+        return []domain.Task{}, 0, nil
+    }
+
     // Применяем пагинацию
     if query.Page < 1 {
         query.Page = 1

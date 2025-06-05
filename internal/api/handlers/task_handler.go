@@ -49,15 +49,32 @@ func (h *TaskHandler) GetTasks(c *gin.Context) {
     
     var query domain.TaskQuery
     if err := c.ShouldBindQuery(&query); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        c.JSON(http.StatusBadRequest, domain.ErrorResponse{Error: err.Error()})
         return
+    }
+
+    // Устанавливаем значения по умолчанию для пагинации
+    if query.Page < 1 {
+        query.Page = 1
+    }
+    if query.Limit < 1 || query.Limit > 100 {
+        query.Limit = 10 // или другое разумное значение по умолчанию
     }
 
     tasks, total, err := h.taskService.GetUserTasks(userID, query)
     if err != nil {
-		logger.Info.Printf("[USER: %d] error getting all tasks", userID)
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        logger.Error.Printf("[USER: %d] error getting all tasks: %v", userID, err)
+        c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Error: "Failed to get tasks"})
         return
+    }
+
+    // Вычисляем общее количество страниц
+    var totalPages int64 = 0
+    if total > 0 && query.Limit > 0 {
+        totalPages = total / int64(query.Limit)
+        if total%int64(query.Limit) != 0 {
+            totalPages++
+        }
     }
 
     // Преобразуем для свагера
@@ -66,12 +83,7 @@ func (h *TaskHandler) GetTasks(c *gin.Context) {
         result = append(result, task.ToSwagger())
     }
 
-    totalPages := total / int64(query.Limit)
-    if total%int64(query.Limit) != 0 {
-        totalPages++
-    }
-
-	logger.Info.Printf("[USER: %d] successful receipt of all tasks", userID)
+    logger.Info.Printf("[USER: %d] successfully retrieved %d tasks", userID, len(result))
     c.JSON(http.StatusOK, domain.PaginatedResponse{
         Data:       result,
         Total:      total,

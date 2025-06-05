@@ -9,6 +9,7 @@ import (
 type UserRepository interface {
 	Create(user *domain.User) error
 	FindByEmail(email string) (*domain.User, error)
+	FindByUsername(username string) (*domain.User, error) 
 	FindByID(id uint) (*domain.User, error)
 }
 
@@ -34,4 +35,10 @@ func (r *userRepository) FindByID(id uint) (*domain.User, error) {
 	var user domain.User
 	err := r.db.First(&user, id).Error
 	return &user, err
+}
+
+func (r *userRepository) FindByUsername(username string) (*domain.User, error) {
+    var user domain.User
+    err := r.db.Where("username = ?", username).First(&user).Error
+    return &user, err
 }
